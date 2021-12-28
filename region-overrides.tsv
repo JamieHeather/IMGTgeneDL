@@ -1,0 +1,9 @@
+Species	Gene	Field(s)
+Homo+sapiens	TRAC	EX1,EX2,EX3,EX4UTR
+Homo+sapiens	TRBC	EX1,EX2,EX3,EX4
+Homo+sapiens	TRGC	EX1,EX2,EX2R,EX2T,EX3
+Homo+sapiens	TRDC	EX1,EX2,EX3,EX4UTR
+Mus+musculus	TRAC	EX1,EX2,EX3,EX4UTR
+Mus+musculus	TRBC	EX1,EX2,EX3,EX4
+Mus+musculus	TRGC	EX1,EX2,EX2A,EX2B,EX3
+Mus+musculus	TRDC	EX1,EX2,EX3,EX4UTR
