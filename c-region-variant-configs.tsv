@@ -1,0 +1,14 @@
+Species	Gene	Field(s)
+Bos+taurus	TRGC	EX1+EX2A+EX2B+EX2C+EX3
+Bos+taurus	TRGC	EX1+EX2A+EX3
+Camelus+dromedarius	TRGC	EX1+EX2A+EX2B+EX2C+EX3
+Canis+lupus+familiaris	TRGC	EX1+EX2A+EX2B+EX3
+Canis+lupus+familiaris	TRGC	EX1+EX2A+EX3
+Felis+catus	TRGC	EX1+EX2A+EX2B+EX3
+Felis+catus	TRAC	EX1+EX2+EX3+EX4
+Felis+catus	TRDC	EX1+EX2+EX3+EX4
+Homo+sapiens	TRGC	EX1+EX2T+EX2+EX3
+Homo+sapiens	TRGC	EX1+EX2T+EX2R+EX2+EX3
+Macaca+mulatta	TRGC	EX1+EX2T+EX2R+EX2+EX3
+Mus+musculus	TRGC	EX1+EX2A+EX2B+EX3
+Oryctolagus+cuniculus	TRGC	EX1+EX2A+EX2B+EX3
