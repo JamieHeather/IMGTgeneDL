@@ -1,7 +1,7 @@
 # IMGTgeneDL
 
 ## 0.4.0
-##### Jamie Heather | CCR @ MGH | 2021
+##### Jamie Heather | CCR @ MGH | 2023
 
 This script provides an alternative way to access TCR and IG genes stored in [IMGT/GENE-DB](http://www.imgt.org/genedb/). It's primarily designed for downloading human/mouse TCRs, but it's readily adaptable to other species/loci.
 
