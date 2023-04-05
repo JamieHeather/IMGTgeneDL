@@ -1,6 +1,6 @@
 # IMGTgeneDL
 
-## 0.3.0
+## 0.4.0
 ##### Jamie Heather | CCR @ MGH | 2021
 
 This script provides an alternative way to access TCR and IG genes stored in [IMGT/GENE-DB](http://www.imgt.org/genedb/). It's primarily designed for downloading human/mouse TCRs, but it's readily adaptable to other species/loci.
@@ -59,7 +59,7 @@ python3 IMGTgeneDL.py -s Homo+sapiens -L TR -r
 
 While this is a command to just download delta chain J genes from mice:
 ```
-python3 -i IMGTgeneDL.py -n -s mouse -j -L D
+python3 IMGTgeneDL.py -n -s mouse -j -L D
 ```
 
 ### Download whole database
@@ -106,7 +106,7 @@ The script will only output a FASTA file for a specific locus if there is suffic
 
 However note that while this script will generate files if those conditions are met, these data may not be sufficient for functional `stitchr` operation without manually adding sequences (e.g. if no matching leader/variable regions are found). It's recommended that users take care when using these tools for species with relatively little banked data. 
 
-Also note that `stitchr` mode will filter out any FASTA reads containing ambiguous or non-DNA residues, which are present for some species. All TRDV genes are also included in the `TRA.fasta` files, as (at least in humans) all can be found rearranged with TRAJ genes.
+Also note that `stitchr` mode will filter out any FASTA reads containing ambiguous or non-DNA residues, which are present for some species. All TRDV genes are also included in the `TRA.fasta` files by default, as (at least in humans) all can be found rearranged with TRAJ genes.
 
 ## Notes
 
@@ -155,6 +155,10 @@ The FASTA header contains 15 fields separated by '|':
 15. reverse complementary (if it is)
 ```
 
-##### Disclaimer
+##### Disclaimer / notes on IMGT licensing
 
-I am not affiliated with IMGT, and this tool is only shared as a way to increase the utility of their platform. Please TCR responsibly.
+I am not affiliated with IMGT, and this tool is only shared to help the field to better make of use of IMGT data. As stated [on their website](https://www.imgt.org/about/termsofuse.php) and [in their publications](https://doi.org/10.1093/nar/gkab1136), IMGT's policy regarding sharing of their data is that:
+
+"*... IMGT® software and data are provided to the academic users and NPO's (Not for Profit Organization(s)) under the [CC BY-NC-ND 4.0 license](https://creativecommons.org/licenses/by-nc-nd/4.0/). Any other use of IMGT® material, from the private sector, needs a financial arrangement with CNRS.*"
+
+Please TCR responsibly.

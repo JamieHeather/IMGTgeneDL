@@ -16,7 +16,7 @@ import textwrap
 import warnings
 from requests import get
 
-__version__ = '0.3.0'
+__version__ = '0.4.0'
 __author__ = 'Jamie Heather'
 __email__ = 'jheather@mgh.harvard.edu'
 
@@ -228,11 +228,10 @@ def determine_loci(in_args):
         invalid = [x for x in input_loci if x not in loci_ids]
         print("Detected " + str(len(valid)) + " valid loci to download: " + ', '.join([loci_ids[x] for x in valid]))
         if invalid:
-            print("Detected " + str(len(invalid)) + " invalid loci characters which will be ignored: " +
-                  ', '.join([x for x in invalid]))
+            warnings.warn("Detected " + str(len(invalid)) + " invalid loci characters which will be ignored: " + 
+                          ', '.join([x for x in invalid]))
 
         return valid
-    # TODO add this info to a log?
 
 
 def determine_genes(in_args):
@@ -312,7 +311,7 @@ def get_specific_items(search_loci, search_genes, species_constants, basic_gene_
                             if reads:
                                 exon_fasta += reads
                             else:
-                                print("No constant region exons found for: " + '/'.join(
+                                warnings.warn("No constant region exons found for: " + '/'.join(
                                     [search_species, full_gene, exon]))
 
                         except:
@@ -435,7 +434,7 @@ def output_stitchr_format(cli_args, fasta_str):
     """
     :param cli_args: dict of command line arguments from argparse
     :param fasta_str: str containing all fasta reads concatenated together, as downloaded from IMGT
-    :return: nothing, just writes out the relevant data to the required files
+    :return: the path to the output directory
     """
 
     # Check output directory
@@ -525,20 +524,20 @@ def output_stitchr_format(cli_args, fasta_str):
         # Count which regions are being found, to ensure we have at least some of each for stitching
         region_counts[read_locus][new_label] += 1
 
-    for l in out_strs:
+    for loc in out_strs:
         # Only write out loci which were detected...
-        if len(out_strs[l]) > 0:
+        if len(out_strs[loc]) > 0:
 
             # ... and only if they have at least some of each type of read for that locus
-            if len(region_counts[l]) >= 4:
-                with open(out_dir + 'TR' + l + '.fasta', 'w') as output_file:
-                    output_file.write(out_strs[l])
+            if len(region_counts[loc]) >= 4:
+                with open(out_dir + 'TR' + loc + '.fasta', 'w') as output_file:
+                    output_file.write(out_strs[loc])
             else:
                 warnings.warn("Warning: less than the complete number of sequence types (L/V/J/C) "
-                              "detected for " + l + " locus; this cannot be stitched, so this locus will be skipped. ")
+                              "detected for " + loc + " locus; this cannot be stitched, so this locus will be skipped. ")
 
         else:
-            warnings.warn("Warning: no sequences detected for " + l + " locus. ")
+            warnings.warn("Warning: no sequences detected for " + loc + " locus. ")
 
     # Write out J/C region motif data
     with open(out_dir + 'J-region-motifs.tsv', 'w') as output_file:
@@ -557,6 +556,8 @@ def output_stitchr_format(cli_args, fasta_str):
             'imgt_genedb_release\t' + get_release(base_url)
         ])
         output_file.write(out_str)
+
+    return out_dir
 
 
 def determine_c_motifs(gene_header_bits, gene_seq):
@@ -702,7 +703,7 @@ def concat_constants(exon_reads, exon_arrangement):
         if r:
             header_break = r.index('\n')
             header = r[:header_break]
-            seq = r[header_break + 1:].replace('\n', '')
+            seq = r[header_break + 1:].replace('\n', '').replace('\r', '')
             bits = header.split('|')
             gn = bits[1]
             ex = bits[4]
@@ -861,34 +862,48 @@ if __name__ == '__main__':
     # Sort input/output file details
     input_args = process_input_args(vars(args()))
 
-    if input_args['get_all']:
-        url, out_suffix = get_url(input_args, base_url)
-        out_path = name_out_file(input_args, out_suffix)
-        download_genedb(url, out_path)
+    with warnings.catch_warnings(record=True) as warnings_list:
+        warnings.simplefilter("always")
 
-    else:
-
-        # Determine which loci and gene segments to get
-        constant_regions = get_species_specific_constants(input_args['species'],
-                                                          constant_regions_exons,
-                                                          c_region_variants_file)
-
-        loci = determine_loci(input_args)
-        genes = determine_genes(input_args)
-        out_path = name_out_file(input_args, [input_args['species'], ''.join(loci), ''.join(genes)])
-
-        # Then scrape IMGT for those sections
-        compiled_sequences = get_specific_items(loci, genes, constant_regions,
-                                                default_gene_types, input_args['species'])
-
-        # Determine the appropriate output format, with the default being a 'simple' output list
-        if input_args['output_mode'] == 'simple':
-            with open(out_path, 'w') as out_file:
-                out_file.write(compiled_sequences)
-
-        # Alternatively output in the appropriate format for Stitchr
-        elif input_args['output_mode'] == 'stitchr':
-            output_stitchr_format(input_args, compiled_sequences)
+        if input_args['get_all']:
+            url, out_suffix = get_url(input_args, base_url)
+            out_path = name_out_file(input_args, out_suffix)
+            download_genedb(url, out_path)
 
         else:
-            raise IOError("Unknown output mode specified: " + input_args['output_mode'])
+
+            # Determine which loci and gene segments to get
+            constant_regions = get_species_specific_constants(input_args['species'],
+                                                              constant_regions_exons,
+                                                              c_region_variants_file)
+
+            loci = determine_loci(input_args)
+            genes = determine_genes(input_args)
+            out_path = name_out_file(input_args, [input_args['species'], ''.join(loci), ''.join(genes)])
+
+            # Then scrape IMGT for those sections
+            compiled_sequences = get_specific_items(loci, genes, constant_regions,
+                                                    default_gene_types, input_args['species'])
+
+            # Determine the appropriate output format, with the default being a 'simple' output list
+            if input_args['output_mode'] == 'simple':
+                with open(out_path, 'w') as out_file:
+                    out_file.write(compiled_sequences)
+
+            # Alternatively output in the appropriate format for Stitchr
+            elif input_args['output_mode'] == 'stitchr':
+                stitchr_dir = output_stitchr_format(input_args, compiled_sequences)
+
+            else:
+                raise IOError("Unknown output mode specified: " + input_args['output_mode'])
+
+    # Finally output a warnings log
+    warnings_txt = '\n'.join([str(warnings_list[x].message) for x in range(len(warnings_list)) if
+                              'HTTPS' not in str(warnings_list[x].message) and
+                              'certificate' not in str(warnings_list[x].message)])
+    warnings_file = 'IMGTgeneDLwarnings.txt'
+    if input_args['output_mode'] == 'stitchr':
+        warnings_file = stitchr_dir + warnings_file
+
+    with open(warnings_file, 'w') as out_file:
+        out_file.write(warnings_txt)
