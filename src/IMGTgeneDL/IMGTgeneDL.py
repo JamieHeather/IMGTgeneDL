@@ -23,7 +23,7 @@ if sys.version_info < (3, 9):
 else:
     import importlib.resources as importlib_resources       # importlib.resources
 
-__version__ = '0.5.0'
+__version__ = '0.5.1'
 __author__ = 'Jamie Heather'
 __email__ = 'jheather@mgh.harvard.edu'
 
@@ -262,6 +262,9 @@ def determine_genes(in_args):
             genes_to_dl.append('J')
         if in_args['get_c']:
             genes_to_dl.append('C')
+
+    if not genes_to_dl:
+        raise IOError("No gene regions detected for download - please use the appropriate -l/-v/-d/-j/-c/-r flags. ")
 
     warnings.warn("Detected " + str(len(genes_to_dl)) + " gene types to download: " + ', '.join(genes_to_dl) + '.')
 
@@ -865,8 +868,6 @@ def main():
     pkg_files = importlib_resources.files("IMGTgeneDL")
     c_region_variants_file = str(pkg_files / 'c-region-variant-configs.tsv')
     default_species_path = str(pkg_files / 'species.tsv')
-    print(str(pkg_files))
-    print(importlib_resources.files("IMGTgeneDL"))
     input_args = process_input_args(vars(args()), default_species_path)
 
     with warnings.catch_warnings(record=True) as warnings_list:

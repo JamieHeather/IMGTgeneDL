@@ -1,9 +1,9 @@
 # IMGTgeneDL
 
-## 0.5.0
+## 0.5.1
 ##### Jamie Heather | CCR @ MGH | 2023
 
-This script provides an alternative way to access TCR and IG genes stored in [IMGT/GENE-DB](http://www.imgt.org/genedb/). It was mostly built to download human and mouse TCR sequences, so that's what is most tested, but it's readily adaptable to other species and loci.
+This tool provides an alternative way to access TCR and IG genes stored in [IMGT/GENE-DB](http://www.imgt.org/genedb/). It was mostly built to download human and mouse TCR sequences, so that's what is most tested, but it's readily adaptable to other species and loci.
 
 ## Usage
 
@@ -60,12 +60,12 @@ Note that these can be combined, e.g. `-vdj` will just download the V, D, and J 
 
 The following is the basic command to download all relevant human sequences for all chains:
 ```
-IMGTgeneDL.py -s Homo+sapiens -L TR -r
+IMGTgeneDL -s Homo+sapiens -L TR -r
 ```
 
 While this is a command to just download delta chain J genes from mice:
 ```
-IMGTgeneDL.py -n -s mouse -j -L D
+IMGTgeneDL -n -s mouse -j -L D
 ```
 
 ### Download whole database
@@ -104,8 +104,8 @@ This mode downloads all loci for all regions that are available for the requeste
 It is simply run by specifying the mode and the desired species, either using common or scientific names:
 
 ```
-IMGTgeneDL.py -s human -m stitchr -n
-IMGTgeneDL.py -s Homo+sapiens -m stitchr
+IMGTgeneDL -s human -m stitchr -n
+IMGTgeneDL -s Homo+sapiens -m stitchr
 ```
 
 The script will only output a FASTA file for a specific locus if there is sufficient information for `stitchr` to use, i.e. there must be at least one leader, variable, joining, and constant region sequence, which are not currently available for all sequences that are listed in the database. In order to be used by `stitchr` it also appends an additional field to the end of the IMGT-provided FASTA header after a '~' character, labeling it's sequence type (LEADER/VARIABLE/JOINING/CONSTANT), allowing for explicit type declaration in the face of potentially variable IMGT-provided fields.
