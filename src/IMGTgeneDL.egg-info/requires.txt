@@ -1,0 +1,2 @@
+requests
+importlib-resources>=1.1.0

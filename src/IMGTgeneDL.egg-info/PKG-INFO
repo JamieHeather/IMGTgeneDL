@@ -1,3 +1,15 @@
+Metadata-Version: 2.1
+Name: IMGTgeneDL
+Version: 0.5.0
+Summary: Python script to download data from IMGT/GENE-DB
+Home-page: https://github.com/JamieHeather/IMGTgeneDL
+Author: Jamie Heather
+Author-email: jheather@mgh.harvard.edu
+License: : OSI Approved :: MIT License
+Requires-Python: >=3.9
+Description-Content-Type: text/markdown
+License-File: LICENSE
+
 # IMGTgeneDL
 
 ## 0.5.0
