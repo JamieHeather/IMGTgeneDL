@@ -1,0 +1,14 @@
+LICENSE
+README.md
+pyproject.toml
+setup.cfg
+src/IMGTgeneDL/IMGTgeneDL.py
+src/IMGTgeneDL/__init__.py
+src/IMGTgeneDL/c-region-variant-configs.tsv
+src/IMGTgeneDL/species.tsv
+src/IMGTgeneDL.egg-info/PKG-INFO
+src/IMGTgeneDL.egg-info/SOURCES.txt
+src/IMGTgeneDL.egg-info/dependency_links.txt
+src/IMGTgeneDL.egg-info/entry_points.txt
+src/IMGTgeneDL.egg-info/requires.txt
+src/IMGTgeneDL.egg-info/top_level.txt

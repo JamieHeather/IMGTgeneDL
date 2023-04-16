@@ -14,9 +14,16 @@ import datetime
 import re
 import textwrap
 import warnings
+import sys
 from requests import get
 
-__version__ = '0.4.0'
+# Ensure correct importlib-resources function imported
+if sys.version_info < (3, 9):
+    import importlib_resources                              # PyPI
+else:
+    import importlib.resources as importlib_resources       # importlib.resources
+
+__version__ = '0.5.0'
 __author__ = 'Jamie Heather'
 __email__ = 'jheather@mgh.harvard.edu'
 
@@ -245,19 +252,18 @@ def determine_genes(in_args):
         genes_to_dl = ['L', 'V', 'D', 'J', 'C']
 
     else:
-        if input_args['get_l']:
+        if in_args['get_l']:
             genes_to_dl.append('L')
-        if input_args['get_v']:
+        if in_args['get_v']:
             genes_to_dl.append('V')
-        if input_args['get_d']:
+        if in_args['get_d']:
             genes_to_dl.append('D')
-        if input_args['get_j']:
+        if in_args['get_j']:
             genes_to_dl.append('J')
-        if input_args['get_c']:
+        if in_args['get_c']:
             genes_to_dl.append('C')
 
-    print("Detected " + str(len(genes_to_dl)) + " gene types to download: " + ', '.join(genes_to_dl) + '.')
-    # TODO add this info to a log?
+    warnings.warn("Detected " + str(len(genes_to_dl)) + " gene types to download: " + ', '.join(genes_to_dl) + '.')
 
     return genes_to_dl
 
@@ -438,7 +444,7 @@ def output_stitchr_format(cli_args, fasta_str):
     """
 
     # Check output directory
-    out_dir = cli_args['common_name'] + '/'  # TODO allow specification of path to output folder
+    out_dir = cli_args['common_name'] + '/'  # TODO allow specification of path to output folder?
     if not os.path.isdir(out_dir):
         os.mkdir(out_dir)
 
@@ -533,8 +539,8 @@ def output_stitchr_format(cli_args, fasta_str):
                 with open(out_dir + 'TR' + loc + '.fasta', 'w') as output_file:
                     output_file.write(out_strs[loc])
             else:
-                warnings.warn("Warning: less than the complete number of sequence types (L/V/J/C) "
-                              "detected for " + loc + " locus; this cannot be stitched, so this locus will be skipped. ")
+                warnings.warn("Warning: less than the complete number of sequence types (L/V/J/C) detected for "
+                              + loc + " locus; this cannot be stitched, so this locus will be skipped. ")
 
         else:
             warnings.warn("Warning: no sequences detected for " + loc + " locus. ")
@@ -749,11 +755,7 @@ def concat_constants(exon_reads, exon_arrangement):
             out_fasta += fastafy(out_header, gene_seq)
 
     return out_fasta
-    # TODO add log?
 
-
-c_region_variants_file = 'c-region-variant-configs.tsv'
-default_species_path = 'species.tsv'
 
 base_url = "https://www.imgt.org/download/GENE-DB/"
 
@@ -810,7 +812,7 @@ constant_regions_exons = {
 }
 
 
-def process_input_args(cli_args):
+def process_input_args(cli_args, default_species):
     """
     :param cli_args: dict of command line arguments from argparse
     :return: modified dictionary having sorted various provisions
@@ -818,7 +820,7 @@ def process_input_args(cli_args):
     # First sort species information
 
     # If the common species name has been provided, check that it is present in the default list ...
-    species_conversion = import_common_names(default_species_path)
+    species_conversion = import_common_names(default_species)
 
     named = False
     # If common name used
@@ -830,7 +832,7 @@ def process_input_args(cli_args):
                 cli_args['common_name'] = cli_args['in_species'].upper()
             else:
                 raise IOError("Common name input mode selected (-n) but species '" + cli_args['species'].upper() +
-                              "' not in species file. Please check naming/file (" + default_species_path + ").")
+                              "' not in species file. Please check naming/file (" + default_species + ").")
 
             named = True
 
@@ -857,10 +859,15 @@ def process_input_args(cli_args):
     return cli_args
 
 
-if __name__ == '__main__':
+def main():
 
     # Sort input/output file details
-    input_args = process_input_args(vars(args()))
+    pkg_files = importlib_resources.files("IMGTgeneDL")
+    c_region_variants_file = str(pkg_files / 'c-region-variant-configs.tsv')
+    default_species_path = str(pkg_files / 'species.tsv')
+    print(str(pkg_files))
+    print(importlib_resources.files("IMGTgeneDL"))
+    input_args = process_input_args(vars(args()), default_species_path)
 
     with warnings.catch_warnings(record=True) as warnings_list:
         warnings.simplefilter("always")
