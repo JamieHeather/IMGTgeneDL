@@ -1,6 +1,6 @@
 # IMGTgeneDL
 
-## 0.5.1
+## 0.5.2
 ##### Jamie Heather | CCR @ MGH | 2023
 
 This tool provides an alternative way to access TCR and IG genes stored in [IMGT/GENE-DB](http://www.imgt.org/genedb/). It was mostly built to download human and mouse TCR sequences, so that's what is most tested, but it's readily adaptable to other species and loci.

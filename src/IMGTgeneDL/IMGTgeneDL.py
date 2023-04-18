@@ -23,7 +23,7 @@ if sys.version_info < (3, 9):
 else:
     import importlib.resources as importlib_resources       # importlib.resources
 
-__version__ = '0.5.1'
+__version__ = '0.5.2'
 __author__ = 'Jamie Heather'
 __email__ = 'jheather@mgh.harvard.edu'
 
@@ -329,7 +329,7 @@ def get_specific_items(search_loci, search_genes, species_constants, basic_gene_
                                           ". Check connection/input options")
 
                     assembled_fasta = concat_constants(exon_fasta, gene_type)
-                    out_fasta += assembled_fasta
+                    out_fasta += assembled_fasta.replace('\r', '') + '\n'
 
                 # Otherwise try to download the full gene region
                 else:
@@ -339,7 +339,7 @@ def get_specific_items(search_loci, search_genes, species_constants, basic_gene_
                         # ... and then download that, pulling out the FASTA sequence from amidst the HTML
                         reads = page_scrape(dl_url)
                         if reads:
-                            out_fasta += reads
+                            out_fasta += reads.replace('\r', '') + '\n'
 
                     except:
                         warnings.warn("Failed to download specific IMGT/GENE-DB raw data for " +
@@ -755,7 +755,7 @@ def concat_constants(exon_reads, exon_arrangement):
 
             out_header = '|'.join([accessions, g + suffix, header_bits[g]['EX1'][2], functionality, exon_arrangement,
                                    '?', len_str + ' nt', '?', ' ', ' ', ' ', ' ', len_str + '+0=' + len_str, ' ', ' '])
-            out_fasta += fastafy(out_header, gene_seq)
+            out_fasta += fastafy(out_header, gene_seq.replace('\r', ''))
 
     return out_fasta
 
