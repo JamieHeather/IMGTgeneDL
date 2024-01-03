@@ -1,13 +1,19 @@
 # IMGTgeneDL
 
-## 0.5.2
-##### Jamie Heather | CCR @ MGH | 2023
+## 0.6.0
+##### Jamie Heather | KF-CCR @ MGH | Last updated: 2024-01
 
-This tool provides an alternative way to access TCR and IG genes stored in [IMGT/GENE-DB](http://www.imgt.org/genedb/). It was mostly built to download human and mouse TCR sequences, so that's what is most tested, but it's readily adaptable to other species and loci.
+This tool provides an alternative way to access TCR and IG genes stored in [IMGT/GENE-DB](http://www.imgt.org/genedb/) via the command-line, aiming to:
+
+* Make it easier to incorporate IMGT sequences into analysis pipelines
+* Keep those sequences updated
+* Maintain information as to the provenance of the data
+
+It was mostly built to download human and mouse TCR sequences, with so that's what is most tested, but it's readily adaptable to other species and loci.
 
 ## Usage
 
-This script is tested on python >= 3.6.
+This version has been tested on Python 3.11 and 3.12. It requires Python >3.9.
 
 ### Installation
 
@@ -56,17 +62,36 @@ This script is designed to help in the aid in the analysis of typical expressed 
 
 Note that these can be combined, e.g. `-vdj` will just download the V, D, and J gene sequences. Alternatively users can apply the `-r / --get_all_regions` flag to just download all of these regions (equivalent to `-lvdjc`).
 
-#### Examples
+##### Examples
 
 The following is the basic command to download all relevant human sequences for all chains:
-```
+```bash
 IMGTgeneDL -s Homo+sapiens -L TR -r
 ```
 
 While this is a command to just download delta chain J genes from mice:
-```
+```bash
 IMGTgeneDL -n -s mouse -j -L D
 ```
+
+#### Downloading any IMGT sequence type
+
+IMGT genes are annotated with a large number of other sequence features that users may wish to download, in addition to the basic coding features the flags described above. To download these users can make use of the `-d / --get_d` command line input, with multiple regions able to be requested, separated by commas, with any apostrophes escaped with a backslash. As all fields need to relate to a V/D/J/C gene, these must also be specified, after an '=' symbol. For example:
+
+```bash
+# Download TRBJ recombination signals
+IMGTgeneDL -L B -x J-RS=J
+
+# Download TRA 'V-GENE' and leader part 1 regions
+IMGTgeneDL -L A -x V-GENE=V,L-PART1=V
+
+# Download TRD 5' UTRs
+IMGTgeneDL -L D -x 5\'UTR=V
+```
+
+Note that output files produced in this manner will not be labelled with every user-specified gene type - instead output files will be labelled 'X1', or 'X1X2...' and so on, depending on how many fields were requested. 
+
+In order to allow for IMGT introducing or changing field names none are hard-coded into `IMGTgeneDL`. Field names can be identified by looking at the IMGT documentation, or by running [a query via the IMGT/GENE-DB web interface](https://www.imgt.org/genedb/). Please ensure you're getting the field name correct, as `IMGTgeneDL` won't give an error message if an incorrect name is returned (as it cannot distinguish that from a species/locus combination that just lacks data on IMGT). 
 
 ### Download whole database
 
@@ -104,7 +129,7 @@ This mode downloads all loci for all regions that are available for the requeste
 It is simply run by specifying the mode and the desired species, either using common or scientific names:
 
 ```
-IMGTgeneDL -s human -m stitchr -n
+IMGTgeneDL -s human -n -m stitchr
 IMGTgeneDL -s Homo+sapiens -m stitchr
 ```
 
@@ -160,6 +185,10 @@ The FASTA header contains 15 fields separated by '|':
 14. partial (if it is)
 15. reverse complementary (if it is)
 ```
+
+#### Warnings file
+
+`IMGTgeneDL` will produce a text file whenever it is run, either named or suffixed `IMGTgeneDLwarnings.txt`. This file contains the version information, terminal command used, and any warnings generated throughout the process. IMGT/GENE-DB release number and access date are used to prefix the data (unless running in `stitchr` mode, in which case this information is provided in the `data-production-date.tsv` file). It is recommended to check these files after running, and then keep these them with the output data to maintain data provenance and provide reproducibility information when publishing. 
 
 ##### Licensing notes
 

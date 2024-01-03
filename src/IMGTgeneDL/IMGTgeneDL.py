@@ -23,7 +23,7 @@ if sys.version_info < (3, 9):
 else:
     import importlib.resources as importlib_resources       # importlib.resources
 
-__version__ = '0.5.2'
+__version__ = '0.6.0'
 __author__ = 'Jamie Heather'
 __email__ = 'jheather@mgh.harvard.edu'
 
@@ -60,6 +60,9 @@ def args():
                         help='Flag to download joining gene (J-REGION) sequences.')
     parser.add_argument('-c', '--get_c', action='store_true', required=False, default=False,
                         help='Flag to download constant region sequences.')
+    parser.add_argument('-x', '--get_x', type=str, required=False,
+                        help='Download arbitrary IMGT regions. String or comma-delimited list, '
+                             'e.g. \'V-GENE,L-PART1\'.')
 
     parser.add_argument('-L', '--loci', required=False, type=str, default='AB',
                         help='Loci to download, as characters/strings (ABGD). Default = \'AB\'.')
@@ -98,8 +101,8 @@ def download_genedb(url_to_dl, fasta_file):
             file.write(response.content)
 
     except:
-        raise IOError("Failed to download IMGT/GENE-DB raw data. Check connection/input options. \n"
-                      "URL = " + url_to_dl)
+        raise ConnectionError("Failed to download IMGT/GENE-DB raw data. Check connection/input options. \n"
+                              "URL = " + url_to_dl)
 
 
 def readfa(fp):
@@ -206,7 +209,7 @@ def get_release(url_stem):
         return get(url_stem + 'RELEASE', verify=False).content.decode()
 
     except:
-        raise IOError("Unable to download GENE-DB release number. Please check connection.")
+        raise ConnectionError("Unable to download GENE-DB release number. Please check connection.")
 
 
 def fastafy(fasta_header, fasta_seq):
@@ -241,10 +244,12 @@ def determine_loci(in_args):
         return valid
 
 
-def determine_genes(in_args):
+def determine_genes(in_args, gene_types_dict, search_gene_type_dict):
     """
     :param in_args: Dict of input CLI arguments
-    :return: list of single digit characters denoting gene segments to try to downlooad
+    :params gene_types_dict: Dict of IMGT gene region types
+    :parmas search_gene_type_dict: Dict of region types to which the regions relate
+    :return: list of single digit characters denoting gene segments to try to download and modified input dicts
     """
 
     genes_to_dl = []
@@ -262,13 +267,26 @@ def determine_genes(in_args):
             genes_to_dl.append('J')
         if in_args['get_c']:
             genes_to_dl.append('C')
+        if in_args['get_x']:
+            # User-specified IMGT regions (to allow for any arbitrary/future region type)
+            if len(in_args['get_x']) > 0:
+                ur_count = 1
+                for user_region in in_args['get_x'].upper().split(','):
+                    if '=' not in user_region:
+                        raise IOError("User specified regions need to be specified in the format 'Region=Gene', e.g. 'V-GENE=V' or ")
+                    ur, sg = user_region.split('=')
+                    ur_label = 'X' + str(ur_count)
+                    genes_to_dl.append(ur_label)
+                    gene_types_dict[ur_label] = [ur]
+                    search_gene_type_dict[ur_label] = sg
+                    ur_count += 1
 
     if not genes_to_dl:
         raise IOError("No gene regions detected for download - please use the appropriate -l/-v/-d/-j/-c/-r flags. ")
 
     warnings.warn("Detected " + str(len(genes_to_dl)) + " gene types to download: " + ', '.join(genes_to_dl) + '.')
 
-    return genes_to_dl
+    return genes_to_dl, gene_types_dict, search_gene_type_dict
 
 
 def get_specific_items(search_loci, search_genes, species_constants, basic_gene_types, search_species):
@@ -295,14 +313,14 @@ def get_specific_items(search_loci, search_genes, species_constants, basic_gene_
             for gene_type in gene_types[gene]:
 
                 # Use these fields to populate the URL...
-                # (accounting for the fact that leaders are technically part of the V)
-                if gene == 'L':
-                    search_gene = 'V'
-                else:
-                    search_gene = gene
+
+                # First determine what gene type a given region refers to
+                search_gene = search_gene_dict[gene]
 
                 # Skip D gene search for those loci which don't have any
                 if search_gene == 'D' and locus not in ['B', 'D']:
+                    warnings.warn("D region sequences have been requested for a locus that doesn't have them: " + locus
+                                  + ". Ignoring and continuing with request. ")
                     continue
 
                 full_gene = 'TR' + locus + search_gene
@@ -367,7 +385,11 @@ def page_scrape(download_url):
     :param download_url: URL of IMGT page to try to download FASTA sequences from
     :return: FASTA reads found on the page, if any
     """
-    scrape = get(download_url, verify=False).content.decode()
+    try:
+        scrape = get(download_url, verify=False).content.decode()
+    except:
+        raise ConnectionError("Unable to scrape page " + download_url + "\n. "
+                              "Please check internet connection and try again.")
 
     if '\n>' in scrape:
         fasta_start = scrape.index('\n>')
@@ -381,6 +403,7 @@ def page_scrape(download_url):
             return
 
     else:
+        warnings.warn("No FASTA entries detected at URL: " + download_url)
         return
 
 
@@ -805,6 +828,10 @@ default_gene_types = {
     'J': ['J-REGION']
 }
 
+# This dict dictates which gene type a given region corresponds to
+# While the defaults are mostly redundant, being identical to, they matter more for users using the 'get_x' option
+search_gene_dict = {'V': 'V', 'D': 'D', 'J': 'J', 'C': 'C', 'L': 'V'}
+
 # Specifies the expected (minimal) exons required to produce a coding constant region
 # Ignores less conserved/duplicated TRGC exon configurations, set via the c-region-variant-configs.tsv file
 constant_regions_exons = {
@@ -863,6 +890,8 @@ def process_input_args(cli_args, default_species):
 
 
 def main():
+    global default_gene_types
+    global search_gene_dict
 
     # Sort input/output file details
     pkg_files = importlib_resources.files("IMGTgeneDL")
@@ -886,7 +915,8 @@ def main():
                                                               c_region_variants_file)
 
             loci = determine_loci(input_args)
-            genes = determine_genes(input_args)
+            genes, default_gene_types, search_gene_dict = determine_genes(input_args, default_gene_types,
+                                                                          search_gene_dict)
             out_path = name_out_file(input_args, [input_args['species'], ''.join(loci), ''.join(genes)])
 
             # Then scrape IMGT for those sections
@@ -909,9 +939,14 @@ def main():
     warnings_txt = '\n'.join([str(warnings_list[x].message) for x in range(len(warnings_list)) if
                               'HTTPS' not in str(warnings_list[x].message) and
                               'certificate' not in str(warnings_list[x].message)])
-    warnings_file = 'IMGTgeneDLwarnings.txt'
+    warnings_file_suffix = 'IMGTgeneDLwarnings.txt'
+
     if input_args['output_mode'] == 'stitchr':
-        warnings_file = stitchr_dir + warnings_file
+        warnings_file = stitchr_dir + warnings_file_suffix
+    else:
+        warnings_file = out_path.replace('.fasta', '_' + warnings_file_suffix)
 
     with open(warnings_file, 'w') as out_file:
-        out_file.write(warnings_txt)
+        out_file.write('IMGTgeneDL_version:\n' + str(__version__) + '\n\n')
+        out_file.write('input_arguments:\n' + ' '.join(sys.argv) + '\n\nWarnings:\n')
+        out_file.write(warnings_txt + '\n')
