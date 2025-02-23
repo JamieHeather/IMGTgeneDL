@@ -1,7 +1,7 @@
 # IMGTgeneDL
 
-## 0.6.0
-##### Jamie Heather | KF-CCR @ MGH | Last updated: 2024-01
+## 0.6.1
+##### Jamie Heather | KF-CCR @ MGH | Last updated: 2025-02
 
 This tool provides an alternative way to access TCR and IG genes stored in [IMGT/GENE-DB](http://www.imgt.org/genedb/) via the command-line, aiming to:
 
@@ -117,6 +117,7 @@ This mode downloads all loci for all regions that are available for the requeste
 
 * `data-production-date.tsv`
     * Contains information about the IMGT and script versions used to generate this data
+    * Note that as of version 0.6.1 the names of these fields has changed slightly, to allow for a more standardised metadata handling in downstream scripts
 * `imgt-data.fasta`
     * Contains all of the FASTA reads that were successfully downloaded for this species
 * `J-region-motifs.tsv`

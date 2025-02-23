@@ -23,7 +23,7 @@ if sys.version_info < (3, 9):
 else:
     import importlib.resources as importlib_resources       # importlib.resources
 
-__version__ = '0.6.0'
+__version__ = '0.6.1'
 __author__ = 'Jamie Heather'
 __email__ = 'jheather@mgh.harvard.edu'
 
@@ -38,7 +38,7 @@ def args():
     # Help flag
     parser = argparse.ArgumentParser(
         description="IMGTupdate " + str(__version__) + '\n' +
-                    ": Download the most up-to-date TCR germline gene information from IMGT/GENE-DB")
+                    ": Download the most up-to-date germline gene information from IMGT/GENE-DB")
 
     parser.add_argument('-s', '--in_species', required=False, type=str, default='Homo+sapiens',
                         help='Species to download. Use genus/species, separated with a \'+\'. '
@@ -581,12 +581,13 @@ def output_stitchr_format(cli_args, fasta_str):
     # Finally generate the brief summary log file
     with open(out_dir + 'data-production-date.tsv', 'w') as output_file:
         out_str = '\n'.join([
-            'imgt-data.fasta_last_modified\t' + today(),
+            'reference\tIMGT/GENE-DB',
+            'release\t' + get_release(base_url),
+            'last_modified\t' + today(),  # TODO scrape the actual last modified date?
             'script_used\tIMGTgeneDL',
             'last_run\t' + today(),
-            'version_used\t' + __version__,
-            'imgt_genedb_release\t' + get_release(base_url)
-        ])
+            'version_used\t' + __version__
+        ]) + '\n'
         output_file.write(out_str)
 
     return out_dir
